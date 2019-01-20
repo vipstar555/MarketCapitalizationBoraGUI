@@ -91,7 +91,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\.ssh\YahooFinanceDbContext\YahooFinanceDbContext\YahooFinanceDbContext.csproj">
+    <ProjectReference Include="..\..\YahooFinanceDbContext\YahooFinanceDbContext\YahooFinanceDbContext.csproj">
       <Project>{afc7459d-793a-40d6-b990-077efe2820c5}</Project>
       <Name>YahooFinanceDbContext</Name>
     </ProjectReference>

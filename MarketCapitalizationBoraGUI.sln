@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28307.271
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketCapitalizationBoraGUI", "MarketCapitalizationBoraGUI\MarketCapitalizationBoraGUI.csproj", "{2DE68888-CD0F-4879-97CA-4AB126746F59}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YahooFinanceDbContext", "..\..\..\.ssh\YahooFinanceDbContext\YahooFinanceDbContext\YahooFinanceDbContext.csproj", "{AFC7459D-793A-40D6-B990-077EFE2820C5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YahooFinanceDbContext", "..\YahooFinanceDbContext\YahooFinanceDbContext\YahooFinanceDbContext.csproj", "{AFC7459D-793A-40D6-B990-077EFE2820C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

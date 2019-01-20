@@ -11,59 +11,53 @@ namespace MarketCapitalizationBoraGUI
     {
         SortableBindingList<GUIViewItem> _guiViewItems { get; set; } 
         YahooFinanceDbContext _yahooFinanceDbContext { get; set; }
+        Dictionary<int, List<TradeIndex>> _codeTradeIndexDic { get; set; }
 
         public YahooFinanceToGUIViewItem()
         {
             _yahooFinanceDbContext = new YahooFinanceDbContext();
             _guiViewItems = new SortableBindingList<GUIViewItem>();
+            _codeTradeIndexDic = new Dictionary<int, List<TradeIndex>>();
         }
         //全銘柄の日付範囲データを取得
         public SortableBindingList<GUIViewItem> GetBetweenDatetimeGUIViewItem(DateTime fromDatetime, DateTime toDatetime)
         {
             _guiViewItems.Clear();
-            foreach(var codeList in _yahooFinanceDbContext.CodeLists)
+            //TradeIndexを銘柄コード別に実体を分ける ※時価総額が0円の場合はここで弾く　暫定          
+            foreach (var tradeIndex in _yahooFinanceDbContext.TradeIndexs.Where(x => fromDatetime <= x.date && x.date <= toDatetime && x.marketCapitalization != 0).ToList())
             {
-                var sw = new System.Diagnostics.Stopwatch();
-                
-                var codeAndDatetimeTradeIndexs = _yahooFinanceDbContext.TradeIndexs.Where(x => x.code == codeList.code).Where(x => fromDatetime <= x.date && x.date <= toDatetime);
-
-                //最大時価総額のTradeIndex
-                var IQueryHighCapTradeIndex = codeAndDatetimeTradeIndexs.Where(x => x.marketCapitalization == codeAndDatetimeTradeIndexs.Select(y => y.marketCapitalization).Max());
-                //0以外の最低時価総額TradeIndex
-                var IQueryLowCapTradeIndex = codeAndDatetimeTradeIndexs.Where(x => x.marketCapitalization == codeAndDatetimeTradeIndexs.Select(y => y.marketCapitalization).Where(cap => cap != 0).Min());
-                //時価総額に値が入っていないなら飛ばす
-                if (IQueryHighCapTradeIndex.FirstOrDefault() == null || IQueryLowCapTradeIndex.FirstOrDefault() == null)
+                if(_codeTradeIndexDic.ContainsKey(tradeIndex.code))
                 {
-                    continue;
+                    _codeTradeIndexDic[tradeIndex.code].Add(tradeIndex);
                 }
-
-                sw.Start();
-                var testHigh = IQueryHighCapTradeIndex.FirstOrDefault();
-                sw.Stop();
-                System.Windows.Forms.MessageBox.Show($"テストHigh：  {sw.Elapsed}");
-                sw.Reset();
-
-                sw.Start();
-                var testLow = IQueryLowCapTradeIndex.FirstOrDefault();
-                sw.Stop();
-                System.Windows.Forms.MessageBox.Show($"テストLow：  {sw.Elapsed}");
-                sw.Reset();
-
-                sw.Start();
+                else
+                {
+                    _codeTradeIndexDic.Add(tradeIndex.code, new List<TradeIndex> { tradeIndex });
+                }
+            }
+            //銘柄コード別にビューアイテムの作成
+            foreach (var key in _codeTradeIndexDic.Keys)
+            {
+                //最大時価総額のTradeIndex
+                var highCapTradeIndex = _codeTradeIndexDic[key].Where(x => x.marketCapitalization == _codeTradeIndexDic[key].Select(y => y.marketCapitalization).Max()).FirstOrDefault();
+                //0以外の最低時価総額TradeIndex
+                var lowCapTradeIndex = _codeTradeIndexDic[key].Where(x => x.marketCapitalization == _codeTradeIndexDic[key].Select(y => y.marketCapitalization).Where(cap => cap != 0).Min()).FirstOrDefault();
+                //時価総額に値が入っていないなら飛ばす
+                if (highCapTradeIndex == null || lowCapTradeIndex == null)
+                {
+                    continue;                    
+                }                
                 _guiViewItems.Add(
                     new GUIViewItem
                     {
-                        Code = codeList.code,
-                        Name = codeList.name,
-                        HighCap = IQueryHighCapTradeIndex.FirstOrDefault().marketCapitalization,
-                        HighCapDatetime = IQueryHighCapTradeIndex.FirstOrDefault().date,
-                        LowCap = IQueryLowCapTradeIndex.FirstOrDefault().marketCapitalization,
-                        LowCapDatetime = IQueryLowCapTradeIndex.FirstOrDefault().date,
+                        Code = highCapTradeIndex.code,
+                        Name = highCapTradeIndex.price.codeList.name,
+                        HighCap = highCapTradeIndex.marketCapitalization,
+                        HighCapDatetime = highCapTradeIndex.date,
+                        LowCap = lowCapTradeIndex.marketCapitalization,
+                        LowCapDatetime = lowCapTradeIndex.date,
                     }
                 );
-                sw.Stop();
-                System.Windows.Forms.MessageBox.Show($"メインAdd：  {sw.Elapsed}");
-                sw.Reset();
             }            
             return _guiViewItems;
         }
